@@ -1,7 +1,5 @@
-# Simple Netlify config for a static site
+
 [build]
   command = ""
   publish = "."
 
-[context.production.environment]
-  NODE_VERSION = "20"

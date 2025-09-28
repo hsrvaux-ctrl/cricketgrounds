@@ -1,50 +1,26 @@
-# Cricket Grounds Map UK
+# UK Cricket Grounds — automated map
 
-This is a plain static site you can host on Netlify. Update the `data/grounds.json` file and push to GitHub to publish new maps.
+This repo holds a static site (Leaflet + OpenStreetMap tiles) and a GitHub Action to fetch all UK cricket pitches from OpenStreetMap weekly, plus one image per ground via Wikimedia.
 
-## Quick start
+## How it works
 
-1. Create a new empty repository on GitHub. Example name: `cricket-grounds-map`.
-2. Upload the following files from this folder:
-   - `index.html`
-   - `ground.html`
-   - `data/grounds.json`
-   - `netlify.toml` (optional)
-3. Go to Netlify and select New site from Git then choose your GitHub repo. No build command required. Publish directory is the repo root.
-4. Netlify will give you a live URL such as `https://your-site-name.netlify.app`.
-5. Edit `data/grounds.json` to add more grounds. Commit and push. Netlify auto publishes.
+- `scripts/fetch_osm_cricket.js` runs an Overpass query for all features with `leisure=pitch` and `sport=cricket` in the UK, normalises them, and writes `data/grounds.json`.
+- `scripts/enrich_images_wikimedia.js` fills `image_url`, `image_credit`, and `image_license` using OSM tags or Wikimedia APIs.
+- `.github/workflows/update_data.yml` runs both on a weekly schedule and on manual dispatch, then commits any changes.
+- `index.html` renders the map with thumbnails; `ground.html` shows a detail page and hero image.
 
-## Data format
+## Local dev
 
-Each ground object:
+- You can open `index.html` directly in a browser, or serve statically.
+- To run the scripts locally:
+  ```
+  node scripts/fetch_osm_cricket.js
+  node scripts/enrich_images_wikimedia.js
+  ```
 
-```
-{
-  "id": "G011",
-  "name": "Ground name",
-  "club": "Club name",
-  "county": "County",
-  "address": "Address",
-  "lat": 51.500,
-  "lon": -0.120,
-  "pitch_type": "Natural grass",
-  "strips": 10,
-  "nets": true,
-  "bar": false,
-  "parking": true,
-  "notes": "Any notes",
-  "club_url": "https://...",
-  "play_cricket_url": "https://...",
-  "booking_url": "https://...",
-  "what3words": "",
-  "description": "Short description"
-}
-```
+## Notes
 
-## Optional automation later
-
-There is a template workflow to fetch new grounds from Overpass and rebuild `data/grounds.json`. To use:
-- Put your repository on public or ensure the workflow can push.
-- Un-comment and commit `.github/workflows/update_data.yml`.
-- Run the workflow manually from the Actions tab or wait for the schedule.
+- Be respectful of public APIs. The scripts include simple delays and a weekly schedule by default.
+- Image licensing depends on Wikimedia sources. We attempt to store short license names; always keep attribution visible on your site (we show it on the detail page).
+- Some OSM objects lack names or accurate centres. We filter out entries without numeric coordinates.
 
