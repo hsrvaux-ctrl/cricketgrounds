@@ -1,13 +1,17 @@
 /**
- * Minimal Overpass fetcher to pull cricket pitches in the UK and convert to grounds.json
- * Use carefully and avoid running too often.
- * Node 18 or newer. No deps.
+ * Fetch cricket grounds across the UK from OpenStreetMap via Overpass API
+ * and write to data/grounds.json in the repo.
+ * 
+ * Run with: node scripts/fetch_osm_cricket.js
+ * Requires Node 18+ (global fetch available).
  */
-import fs from 'node:fs';
-import https from 'node:https';
+import fs from 'node:fs/promises';
+
+const OVERPASS_ENDPOINT = process.env.OVERPASS_ENDPOINT || 'https://overpass-api.de/api/interpreter';
+const USER_AGENT = 'cricket-map-bot/1.0 (contact: your-email@example.com)';
 
 const query = `
-[out:json][timeout:90];
+[out:json][timeout:180];
 area["ISO3166-1"="GB"][admin_level=2]->.uk;
 (
   node["leisure"="pitch"]["sport"="cricket"](area.uk);
@@ -17,62 +21,77 @@ area["ISO3166-1"="GB"][admin_level=2]->.uk;
 out center tags;
 `;
 
-function overpassFetch(q) {
-  const body = 'data=' + encodeURIComponent(q);
-  const options = {
+async function overpassFetch(q) {
+  const res = await fetch(OVERPASS_ENDPOINT, {
     method: 'POST',
-    hostname: 'overpass-api.de',
-    path: '/api/interpreter',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(body)
-    }
-  };
-  return new Promise((resolve, reject) => {
-    const req = https.request(options, res => {
-      let buf = '';
-      res.on('data', d => buf += d);
-      res.on('end', () => resolve(JSON.parse(buf)));
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
+      'User-Agent': USER_AGENT
+    },
+    body: 'data=' + encodeURIComponent(q)
   });
+  if (!res.ok) {
+    const t = await res.text().catch(()=> '');
+    throw new Error(`Overpass error ${res.status}: ${t.slice(0,200)}`);
+  }
+  return res.json();
 }
 
+function tag(o, key) { return o.tags && o.tags[key] || ''; }
+
 function normalise(osm) {
-  return osm.elements.map((el, i) => {
+  return osm.elements.map((el) => {
     const id = `${el.type}/${el.id}`;
-    const name = el.tags?.name || 'Cricket ground';
-    const county = el.tags?.['addr:county'] || '';
-    const address = [el.tags?.['addr:housenumber'], el.tags?.['addr:street'], el.tags?.['addr:city']].filter(Boolean).join(', ');
-    const lat = el.lat || el.center?.lat;
-    const lon = el.lon || el.center?.lon;
+    const name = tag(el, 'name') || 'Cricket ground';
+    const county = tag(el, 'addr:county') || tag(el, 'is_in:county') || '';
+    const address = [tag(el,'addr:housenumber'), tag(el,'addr:street'), tag(el,'addr:city')].filter(Boolean).join(', ');
+    const lat = el.lat ?? el.center?.lat;
+    const lon = el.lon ?? el.center?.lon;
+
+    const wikidata = tag(el, 'wikidata'); // e.g. Q12345
+    const wikipedia = tag(el, 'wikipedia'); // e.g. en:Lord%27s_Cricket_Ground
+    const imageTag = tag(el, 'image'); // direct URL if present
+    const commonsTag = tag(el, 'wikimedia_commons'); // e.g. File:Something.jpg
+
     return {
       id,
+      source: 'osm',
       name,
-      club: '',
+      club: tag(el,'operator') || '',
       county,
       address,
-      lat,
-      lon,
-      pitch_type: 'Natural grass',
+      lat, lon,
+      pitch_type: tag(el, 'surface') || 'Natural grass',
       strips: '',
       nets: '',
       bar: '',
       parking: '',
       notes: '',
-      club_url: '',
+      club_url: tag(el, 'website') || '',
       play_cricket_url: '',
       booking_url: '',
       what3words: '',
-      description: ''
+      description: '',
+      // Image enrichment placeholders:
+      image_url: imageTag || (commonsTag ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(commonsTag.replace(/^File:/i,''))}` : ''),
+      image_credit: '',
+      image_license: '',
+      wikidata,
+      wikipedia
     };
-  }).filter(g => typeof g.lat === 'number' && typeof g.lon === 'number');
+  }).filter(g => Number.isFinite(g.lat) && Number.isFinite(g.lon));
 }
 
-const osm = await overpassFetch(query);
-const grounds = normalise(osm);
-fs.mkdirSync('data', { recursive: true });
-fs.writeFileSync('data/grounds.json', JSON.stringify(grounds, null, 2));
-console.log('Wrote', grounds.length, 'grounds to data/grounds.json');
+async function main() {
+  console.log('Fetching OSM cricket pitches for UK…');
+  const json = await overpassFetch(query);
+  const grounds = normalise(json);
+  await fs.mkdir('data', { recursive: true });
+  await fs.writeFile('data/grounds.json', JSON.stringify(grounds, null, 2));
+  console.log(`Wrote ${grounds.length} grounds to data/grounds.json`);
+}
+
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
