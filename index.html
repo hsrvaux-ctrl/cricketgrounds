@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cricket Grounds Map UK</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    #app { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+    header { padding: 12px 16px; border-bottom: 1px solid #e5e5e5; }
+    header h1 { margin: 0; font-size: 18px; }
+    .controls { display: grid; grid-template-columns: 1fr 200px 200px; gap: 8px; margin-top: 8px; }
+    .controls input, .controls select { padding: 8px; font-size: 14px; }
+    #map { width: 100%; height: calc(100vh - 180px); }
+    .popup { font-size: 14px; }
+    .list { max-height: 240px; overflow: auto; border-top: 1px solid #e5e5e5; padding: 8px 16px; }
+    .item { padding: 6px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+    .item:last-child { border-bottom: none; }
+    .item small { color: #666; }
+    footer { padding: 8px 16px; border-top: 1px solid #e5e5e5; font-size: 12px; }
+    a.btn { display:inline-block; padding:6px 10px; border:1px solid #ddd; border-radius:8px; text-decoration:none; font-size:13px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Cricket Grounds Map UK</h1>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Search by ground or club">
+      <select id="county">
+        <option value="">All counties</option>
+      </select>
+      <select id="facility">
+        <option value="">Any facility</option>
+        <option value="nets">Has nets</option>
+        <option value="bar">Has bar</option>
+        <option value="parking">Has parking</option>
+      </select>
+    </div>
+  </header>
+  <div id="map"></div>
+  <div class="list" id="list"></div>
+  <footer>
+    Map data © OpenStreetMap contributors. Tiles by OpenStreetMap and other contributors. • <a class="btn" href="./ground.html">Example ground page</a>
+  </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+let map, markers = [], data = [], filtered = [];
+
+function initMap() {
+  map = L.map('map').setView([52.8, -1.6], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+}
+
+function markerFor(g) {
+  const m = L.marker([g.lat, g.lon]);
+  const html = `
+    <div class="popup">
+      <strong>${g.name}</strong><br>
+      ${g.club ? g.club + '<br>' : ''}
+      ${g.county ? '<small>' + g.county + '</small><br>' : ''}
+      ${g.address ? '<small>' + g.address + '</small><br>' : ''}
+      <a href="ground.html?id=${encodeURIComponent(g.id)}">View ground</a><br>
+      ${g.club_url ? '<a href="${g.club_url}" target="_blank" rel="noopener">Club site</a><br>' : ''}
+    </div>
+  `;
+  m.bindPopup(html);
+  m._groundId = g.id;
+  return m;
+}
+
+function renderMarkers() {
+  markers.forEach(m => m.remove());
+  markers = [];
+  filtered.forEach(g => {
+    if (typeof g.lat === 'number' && typeof g.lon === 'number') {
+      const m = markerFor(g).addTo(map);
+      markers.push(m);
+    }
+  });
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  filtered.forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `<strong>${g.name}</strong><br><small>${g.club || ''}${g.club && g.county ? ' · ' : ''}${g.county || ''}</small>`;
+    div.addEventListener('click', () => {
+      map.setView([g.lat, g.lon], 14);
+      const m = markers.find(mm => mm._groundId === g.id);
+      if (m) m.openPopup();
+    });
+    list.appendChild(div);
+  });
+}
+
+function applyFilters() {
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const county = document.getElementById('county').value;
+  const facility = document.getElementById('facility').value;
+  filtered = data.filter(g => {
+    const text = (g.name + ' ' + (g.club||'') + ' ' + (g.county||'')).toLowerCase();
+    const matchQ = q === '' || text.includes(q);
+    const matchCounty = county === '' || g.county === county;
+    let matchFacility = true;
+    if (facility === 'nets') matchFacility = !!g.nets;
+    if (facility === 'bar') matchFacility = !!g.bar;
+    if (facility === 'parking') matchFacility = !!g.parking;
+    return matchQ && matchCounty && matchFacility;
+  });
+  renderMarkers();
+  renderList();
+}
+
+function populateCountyFilter() {
+  const select = document.getElementById('county');
+  const set = new Set(data.map(g => g.county).filter(Boolean));
+  [...set].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    select.appendChild(opt);
+  });
+}
+
+async function loadData() {
+  const res = await fetch('./data/grounds.json');
+  data = await res.json();
+  filtered = data.slice();
+  populateCountyFilter();
+  applyFilters();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  loadData();
+  document.getElementById('q').addEventListener('input', applyFilters);
+  document.getElementById('county').addEventListener('change', applyFilters);
+  document.getElementById('facility').addEventListener('change', applyFilters);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ground details</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    header { padding: 12px 16px; border-bottom: 1px solid #e5e5e5; display:flex; gap:12px; align-items:center;}
+    header a { text-decoration:none; font-size:14px; }
+    main { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    #map { height: 360px; border:1px solid #eee; border-radius: 8px; }
+    .card { border:1px solid #eee; border-radius: 8px; padding: 12px; }
+    .muted { color:#666; font-size: 14px; }
+    dt { font-weight: 600; }
+    dd { margin:0 0 8px 0; }
+    .btn { display:inline-block; padding:8px 12px; border:1px solid #ddd; border-radius:8px; text-decoration:none; margin-right:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="./index.html">← Back</a>
+    <strong id="title">Ground</strong>
+  </header>
+  <main>
+    <section class="card">
+      <div id="meta">
+        <div class="muted" id="club"></div>
+        <div class="muted" id="county"></div>
+        <div class="muted" id="address"></div>
+      </div>
+      <p id="desc"></p>
+      <p id="actions"></p>
+    </section>
+    <section class="card">
+      <div id="map"></div>
+    </section>
+    <section class="card">
+      <h3>Facilities</h3>
+      <dl>
+        <dt>Pitch type</dt><dd id="pitch"></dd>
+        <dt>Strips</dt><dd id="strips"></dd>
+        <dt>Nets</dt><dd id="nets"></dd>
+        <dt>Bar</dt><dd id="bar"></dd>
+        <dt>Parking</dt><dd id="parking"></dd>
+      </dl>
+    </section>
+  </main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+async function fetchData() {
+  const res = await fetch('./data/grounds.json');
+  const rows = await res.json();
+  return rows.find(r => r.id === id) || rows[0];
+}
+
+function setText(id, value) {
+  document.getElementById(id).textContent = value || '';
+}
+
+function truthy(v) { return v ? 'Yes' : 'No'; }
+
+function initMap(lat, lon, name) {
+  const map = L.map('map').setView([lat, lon], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  L.marker([lat, lon]).addTo(map).bindPopup(name).openPopup();
+}
+
+(async function () {
+  const g = await fetchData();
+  setText('title', g.name);
+  setText('club', g.club);
+  setText('county', g.county);
+  setText('address', g.address);
+  setText('desc', g.description);
+  setText('pitch', g.pitch_type || 'Unknown');
+  setText('strips', g.strips ?? 'Unknown');
+  setText('nets', truthy(g.nets));
+  setText('bar', truthy(g.bar));
+  setText('parking', truthy(g.parking));
+
+  const actions = [];
+  if (g.club_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.club_url+'">Club site</a>');
+  if (g.play_cricket_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.play_cricket_url+'">Play Cricket</a>');
+  if (g.booking_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.booking_url+'">Book this ground</a>');
+  document.getElementById('actions').innerHTML = actions.join(' ');
+
+  initMap(g.lat, g.lon, g.name);
+})();
+</script>
+</body>
+</html>

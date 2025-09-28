@@ -1,0 +1,32 @@
+name: Update data from OSM
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 0"  # Sundays at 05:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch OSM cricket pitches
+        run: node scripts/fetch_osm_cricket.js
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/grounds.json
+          git diff --cached --quiet || git commit -m "Update grounds.json from Overpass"
+          git push
