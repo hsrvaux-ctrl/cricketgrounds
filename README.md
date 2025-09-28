@@ -1,26 +1,53 @@
-# UK Cricket Grounds — automated map
+# Cricket Grounds Pro — no-Airtable build
 
-This repo holds a static site (Leaflet + OpenStreetMap tiles) and a GitHub Action to fetch all UK cricket pitches from OpenStreetMap weekly, plus one image per ground via Wikimedia.
+This package upgrades your static GitHub + Netlify site with:
+- Modern UI, clustering, Nearby Me
+- "Ground of the Day"
+- Ratings (5 categories) with a Netlify Function that commits to your GitHub repo
+- Share buttons, SEO metadata, OpenGraph and Schema.org
 
-## How it works
+## 1) Add files to your repo
+Place these at the repository root:
+- index.html
+- ground.html
+- netlify.toml
+- data/grounds.json            (your existing file from Overpass workflow)
+- data/ratings.json            (start as [])
+- netlify/functions/submit_rating.mjs
 
-- `scripts/fetch_osm_cricket.js` runs an Overpass query for all features with `leisure=pitch` and `sport=cricket` in the UK, normalises them, and writes `data/grounds.json`.
-- `scripts/enrich_images_wikimedia.js` fills `image_url`, `image_credit`, and `image_license` using OSM tags or Wikimedia APIs.
-- `.github/workflows/update_data.yml` runs both on a weekly schedule and on manual dispatch, then commits any changes.
-- `index.html` renders the map with thumbnails; `ground.html` shows a detail page and hero image.
+## 2) Configure Netlify Function
+In Netlify UI → Site settings → Environment variables, set:
+- GITHUB_TOKEN  : a GitHub Personal Access Token (classic) with `repo` (private) or `public_repo` (public) scope
+- GITHUB_REPO   : owner/repo  (e.g. `hugo-vaux/cricket-grounds-map`)
+- GITHUB_BRANCH : main        (or your default branch)
 
-## Local dev
+Deploy again. Netlify will host the function at:
+`/.netlify/functions/submit_rating`
 
-- You can open `index.html` directly in a browser, or serve statically.
-- To run the scripts locally:
-  ```
-  node scripts/fetch_osm_cricket.js
-  node scripts/enrich_images_wikimedia.js
-  ```
+## 3) Try a rating
+- Visit any ground page (e.g., `ground.html?id=G001`)
+- Click "Rate this ground"
+- Submit
+- A new commit will appear in GitHub updating `data/ratings.json`
+- Refresh the page — the average and count will update (client-side)
+
+## 4) Ground of the Day
+- The homepage picks a random ground that has a hero image + description
+- Click the "Ground of the Day" button to reshuffle client-side
+
+## 5) SEO
+- Ground pages fill dynamic meta and Schema.org JSON-LD
+- For best SEO on a static SPA, consider Netlify’s prerendering add-on later
+
+## 6) Share
+- "Share" uses the Web Share API where supported, falls back to Twitter intent
+- "Copy link" puts the URL on clipboard
+
+## 7) Clustering & Nearby
+- Marker clustering reduces map clutter
+- Nearby me recenters map to your GPS location
 
 ## Notes
-
-- Be respectful of public APIs. The scripts include simple delays and a weekly schedule by default.
-- Image licensing depends on Wikimedia sources. We attempt to store short license names; always keep attribution visible on your site (we show it on the detail page).
-- Some OSM objects lack names or accurate centres. We filter out entries without numeric coordinates.
+- Ratings are stored in your GitHub repo via the function, so no database is needed.
+- You can later add moderation by reviewing `data/ratings.json` in PRs before merging.
 

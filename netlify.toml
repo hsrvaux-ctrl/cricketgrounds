@@ -3,3 +3,5 @@
   command = ""
   publish = "."
 
+[functions]
+  directory = "netlify/functions"
