@@ -1,15 +1,15 @@
-name: Update data from OSM
+name: Update UK cricket grounds
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 5 * * 0"  # Sundays at 05:00 UTC
+    - cron: "30 4 * * 0"  # Sundays 04:30 UTC
 
 permissions:
   contents: write
 
 jobs:
-  fetch:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,13 +20,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Fetch OSM cricket pitches
+      - name: Fetch OSM cricket grounds (UK)
         run: node scripts/fetch_osm_cricket.js
+
+      - name: Enrich images from Wikimedia
+        run: node scripts/enrich_images_wikimedia.js
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/grounds.json
-          git diff --cached --quiet || git commit -m "Update grounds.json from Overpass"
+          git diff --cached --quiet || git commit -m "Auto update grounds.json"
           git push
