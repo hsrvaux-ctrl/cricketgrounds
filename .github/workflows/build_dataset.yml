@@ -1,0 +1,48 @@
+name: Build dataset (no API keys)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 2'  # Tuesdays 05:17 UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Prepare tmp dir
+        run: mkdir -p tmp
+
+      - name: Fetch Active Places (England)
+        env:
+          ACTIVE_PLACES_URL: ${{ secrets.ACTIVE_PLACES_URL }}
+        run: |
+          if [ -z "${ACTIVE_PLACES_URL}" ]; then
+            echo "ACTIVE_PLACES_URL not set; skipping Active Places."
+          else
+            node scripts/fetch_active_places.js
+          fi
+
+      - name: Fetch Scotland facilities
+        env:
+          SCOTLAND_FACILITIES_URL: ${{ secrets.SCOTLAND_FACILITIES_URL }}
+        run: |
+          node scripts/fetch_scotland.js
+
+      - name: Merge sources
+        run: node scripts/merge_sources.js
+
+      - name: Commit dataset
+        run: |
+          if git diff --quiet; then
+            echo "No changes."
+          else
+            git config user.name "ground-bot"
+            git config user.email "ground-bot@users.noreply.github.com"
+            git add data/grounds.json
+            git commit -m "Update grounds dataset (no-key sources)"
+            git push
+          fi
