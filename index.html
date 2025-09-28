@@ -4,86 +4,33 @@
   <meta charset="utf-8">
   <title>UK Cricket Grounds — Map, Ratings & Info</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Basic SEO -->
   <meta name="description" content="Explore every cricket ground in the UK. Find nearby grounds, see ratings, facilities, and history.">
-  <link rel="canonical" href="/" />
-
-  <!-- OpenGraph for social sharing -->
   <meta property="og:title" content="UK Cricket Grounds — Map, Ratings & Info">
   <meta property="og:description" content="Explore cricket grounds near you. See ratings, facilities and history.">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Lord%27s_Cricket_Ground%2C_London_-_June_2009.jpg/640px-Lord%27s_Cricket_Ground%2C_London_-_June_2009.jpg">
+  <meta property="og:image" content="assets/logo.svg">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 
+  <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <style>
-    :root { --bg:#fff; --fg:#111; --muted:#666; --line:#e9e9e9; --accent:#0b6; }
-    * { box-sizing:border-box; }
-    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--fg); background: var(--bg); }
-    a { color: var(--accent); }
-    #app { display: grid; grid-template-rows: auto auto 1fr auto; height: 100%; }
-
-    header { padding: 12px 16px; border-bottom: 1px solid var(--line); display:flex; justify-content: space-between; align-items:center; gap:12px; }
-    header h1 { margin: 0; font-size: 18px; }
-    .nav { display:flex; gap:8px; }
-    .btn { display:inline-block; padding:8px 12px; border:1px solid var(--line); border-radius:999px; text-decoration:none; font-size:13px; }
-    .primary { background: var(--accent); color:#fff; border-color: var(--accent); }
-
-    .feature { display:grid; grid-template-columns: 160px 1fr auto; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
-    .feature img { width:160px; height:100px; object-fit:cover; border-radius:12px; border:1px solid var(--line); }
-    .feature h2 { margin:0; font-size:16px; }
-    .muted { color: var(--muted); font-size: 13px; }
-
-    .controls { display: grid; grid-template-columns: 1fr 200px 200px 140px; gap: 8px; padding:12px 16px; border-bottom:1px solid var(--line); }
-    .controls input, .controls select { padding: 10px 12px; border:1px solid var(--line); border-radius:999px; font-size: 14px; }
-
-    #map { width: 100%; height: calc(100vh - 280px); }
-    @media (max-width: 900px) {
-      .feature { grid-template-columns: 1fr; }
-      #map { height: calc(100vh - 360px); }
-      .controls { grid-template-columns: 1fr 1fr; }
-    }
-
-    .list { max-height: 260px; overflow: auto; border-top: 1px solid var(--line); padding: 8px 16px; }
-    .item { padding: 8px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; display:flex; gap:10px; align-items:center; }
-    .item:last-child { border-bottom: none; }
-    .item img { width:60px; height:44px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
-    .item small { color: var(--muted); }
-
-    footer { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; display:flex; justify-content: space-between; gap:12px; flex-wrap:wrap; }
-    .share { display:flex; gap:8px; }
-  </style>
-
-  <!-- Schema.org for site -->
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"WebSite",
-    "name":"UK Cricket Grounds",
-    "url":"/",
-    "potentialAction": {
-      "@type":"SearchAction",
-      "target":"?q={query}",
-      "query-input":"required name=query"
-    }
-  }
-  </script>
 </head>
 <body>
-<div id="app">
   <header>
-    <h1>UK Cricket Grounds</h1>
-    <nav class="nav">
-      <a class="btn" href="#" id="btn-nearby">Nearby me</a>
-      <a class="btn" href="#" id="btn-today">Ground of the Day</a>
-      <a class="btn primary" href="ground.html?id=random">Random ground</a>
-    </nav>
+    <div class="navbar container">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="Logo"><h1>UK Cricket Grounds</h1>
+      </div>
+      <nav class="nav">
+        <a class="btn" href="#" id="btn-nearby" aria-label="Find grounds near me">Nearby me</a>
+        <a class="btn" href="#" id="btn-today" aria-label="Pick ground of the day">Ground of the Day</a>
+        <a class="btn primary" href="ground.html?id=random" aria-label="Open a random ground">Random ground</a>
+      </nav>
+    </div>
   </header>
 
-  <!-- Ground of the Day -->
-  <section class="feature" id="god">
+  <section class="feature container" id="god" aria-live="polite">
     <img id="god-img" alt="">
     <div>
       <h2 id="god-title">Ground of the Day</h2>
@@ -93,237 +40,133 @@
     <a class="btn primary" id="god-link" href="#">View</a>
   </section>
 
-  <!-- Controls -->
   <section class="controls">
-    <input id="q" type="search" placeholder="Search by ground or club">
-    <select id="county"><option value="">All counties</option></select>
-    <select id="facility">
-      <option value="">Any facility</option>
-      <option value="nets">Has nets</option>
-      <option value="bar">Has bar</option>
-      <option value="parking">Has parking</option>
-    </select>
-    <select id="sort">
-      <option value="name">Sort A–Z</option>
-      <option value="rating">Highest rated</option>
-      <option value="popular">Most rated</option>
-    </select>
+    <div class="wrap container">
+      <input id="q" type="search" placeholder="Search by ground or club" aria-label="Search">
+      <select id="county" aria-label="Filter by county"><option value="">All counties</option></select>
+      <select id="facility" aria-label="Filter by facility">
+        <option value="">Any facility</option>
+        <option value="nets">Has nets</option>
+        <option value="bar">Has bar</option>
+        <option value="parking">Has parking</option>
+      </select>
+      <select id="sort" aria-label="Sort results">
+        <option value="name">Sort A–Z</option>
+        <option value="rating">Highest rated</option>
+        <option value="popular">Most rated</option>
+      </select>
+    </div>
   </section>
 
-  <!-- Map -->
-  <div id="map"></div>
+  <main class="container">
+    <div class="map-wrap" role="region" aria-label="Map of cricket grounds">
+      <div id="map"></div>
+    </div>
+    <aside class="side">
+      <div class="card"><div id="result-count" class="muted">Loading grounds…</div></div>
+      <div class="card" id="list"></div>
+    </aside>
+  </main>
 
-  <!-- List -->
-  <div class="list" id="list"></div>
-
-  <footer>
+  <footer class="container">
     <div>Map data © OpenStreetMap contributors • Built with Leaflet</div>
-    <div class="share">
-      <a class="btn" id="share-btn" href="#">Share</a>
-      <a class="btn" id="copy-btn" href="#">Copy link</a>
-    </div>
+    <div class="muted">Made for cricket lovers • <a href="https://github.com/" rel="noopener" target="_blank">Contribute</a></div>
   </footer>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script>
-let map, cluster, markers = [], data = [], filtered = [], ratings = [], aggByGround = new Map();
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-function starHtml(avg) {
-  if (!avg && avg !== 0) return '';
-  const s = Math.round(avg * 10) / 10;
-  return '★ ' + s.toFixed(1);
-}
-
-function computeAggregates() {
-  aggByGround = new Map();
-  ratings.forEach(r => {
-    const g = r.ground_id;
-    if (!aggByGround.has(g)) aggByGround.set(g, {count:0, sum:0});
-    const avg = (r.pitch + r.pavilion + r.bar + r.atmosphere + r.value) / 5;
-    const obj = aggByGround.get(g);
-    obj.count++; obj.sum += avg;
-  });
-}
-
-function getAgg(id) {
-  const x = aggByGround.get(id);
-  if (!x) return {avg:null, count:0};
-  return {avg: x.sum / x.count, count: x.count};
-}
-
-function initMap() {
-  map = L.map('map').setView([52.8, -1.6], 6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-  cluster = L.markerClusterGroup();
-  map.addLayer(cluster);
-}
-
-function markerFor(g) {
-  const ag = getAgg(g.id);
-  const img = g.image_url ? '<img src="'+g.image_url+'" alt="" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd;margin-right:8px;">' : '';
-  const html = `
-    <div style="display:flex;align-items:flex-start;">
-      ${img}
-      <div>
-        <strong>${g.name}</strong> ${ag.count ? '<span style="color:#f80">'+starHtml(ag.avg)+'</span>' : ''}<br>
-        ${g.club ? g.club + '<br>' : ''}
-        ${g.county ? '<small>'+g.county+'</small><br>' : ''}
-        <a href="ground.html?id=${encodeURIComponent(g.id)}">View ground</a>
-      </div>
-    </div>
-  `;
-  const m = L.marker([g.lat, g.lon]);
-  m.bindPopup(html);
-  m._groundId = g.id;
-  return m;
-}
-
-function renderMarkers() {
-  cluster.clearLayers();
-  markers = [];
-  filtered.forEach(g => {
-    if (Number.isFinite(g.lat) && Number.isFinite(g.lon)) {
-      const m = markerFor(g);
-      markers.push(m);
-      cluster.addLayer(m);
-    }
-  });
-}
-
-function renderList() {
-  const list = document.getElementById('list');
-  list.innerHTML = '';
-  filtered.forEach(g => {
-    const ag = getAgg(g.id);
-    const div = document.createElement('div');
-    div.className = 'item';
-    const thumb = g.image_url ? '<img src="'+g.image_url+'" alt="">' : '<div style="width:60px;height:44px;border:1px solid #eee;border-radius:8px;"></div>';
-    div.innerHTML = thumb + '<div><strong>'+g.name+'</strong><br><small>'+(g.club || '')+(g.club && g.county ? ' · ' : '')+(g.county || '')+'</small> ' + (ag.count ? '<small> · '+starHtml(ag.avg)+' ('+ag.count+')</small>' : '') + '</div>';
-    div.addEventListener('click', () => {
-      map.setView([g.lat, g.lon], 14);
-      // open closest marker popup
-      const m = markers.find(mm => mm._groundId === g.id);
-      if (m) m.openPopup();
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script>
+  let map, cluster, markers = [], data = [], filtered = [], ratings = [], aggByGround = new Map();
+  const $ = sel => document.querySelector(sel);
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
+  function starHtml(avg){ if(avg==null) return ''; const s=Math.round(avg*10)/10; return '★ '+s.toFixed(1); }
+  function computeAggregates(){
+    aggByGround = new Map();
+    ratings.forEach(r=>{
+      const id=r.ground_id;
+      const score=(r.pitch+r.pavilion+r.bar+r.atmosphere+r.value)/5;
+      const o=aggByGround.get(id)||{count:0,sum:0};
+      o.count++; o.sum+=score; aggByGround.set(id,o);
     });
-    list.appendChild(div);
+  }
+  function getAgg(id){ const x=aggByGround.get(id); return x?{avg:x.sum/x.count,count:x.count}:{avg:null,count:0}; }
+  function initMap(){
+    map=L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView([52.8,-1.6],6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+    cluster=L.markerClusterGroup({ showCoverageOnHover:false, spiderfyOnMaxZoom:true }); map.addLayer(cluster);
+  }
+  function markerFor(g){
+    const ag=getAgg(g.id);
+    const html = `
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        ${g.image_url ? '<img src="'+g.image_url+'" alt="" style="width:88px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">' : ''}
+        <div>
+          <strong>${g.name}</strong> ${ag.count?'<span style="color:#ffb44d">'+starHtml(ag.avg)+'</span>':''}<br>
+          ${g.club ? g.club+'<br>':''}
+          ${g.county ? '<small class="muted">'+g.county+'</small><br>':''}
+          <a class="btn" style="padding:6px 10px;border-radius:10px" href="ground.html?id=${encodeURIComponent(g.id)}">View</a>
+        </div>
+      </div>`;
+    const m=L.marker([g.lat,g.lon]); m.bindPopup(html); m._groundId=g.id; return m;
+  }
+  function renderMarkers(){ cluster.clearLayers(); markers=[]; filtered.forEach(g=>{ if(Number.isFinite(g.lat)&&Number.isFinite(g.lon)){ const m=markerFor(g); markers.push(m); cluster.addLayer(m);} }); }
+  function renderList(){
+    const list=$('#list'); list.innerHTML='';
+    filtered.forEach(g=>{
+      const ag=getAgg(g.id);
+      const item=document.createElement('a'); item.href='ground.html?id='+encodeURIComponent(g.id);
+      item.className='item'; item.setAttribute('aria-label','Open '+g.name);
+      item.innerHTML = (g.image_url?'<img src="'+g.image_url+'" alt="">':'<div style="width:72px;height:52px;border:1px solid var(--line);border-radius:10px"></div>')+
+        '<div><h4>'+g.name+'</h4><small>'+(g.club||'')+(g.club&&g.county?' · ':'')+(g.county||'')+'</small> '+(ag.count?'<small>· '+starHtml(ag.avg)+' ('+ag.count+')</small>':'')+'</div>';
+      list.appendChild(item);
+    });
+    $('#result-count').textContent = filtered.length+' grounds';
+  }
+  function applyFilters(){
+    const q=$('#q').value.toLowerCase().trim();
+    const county=$('#county').value;
+    const facility=$('#facility').value;
+    const sort=$('#sort').value;
+    filtered=data.filter(g=>{
+      const text=(g.name+' '+(g.club||'')+' '+(g.county||'')).toLowerCase();
+      const matchQ = !q || text.includes(q);
+      const matchCounty = !county || g.county===county;
+      let matchFac=true;
+      if(facility==='nets') matchFac=!!g.nets;
+      if(facility==='bar') matchFac=!!g.bar;
+      if(facility==='parking') matchFac=!!g.parking;
+      return matchQ && matchCounty && matchFac;
+    });
+    if(sort==='name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+    if(sort==='rating') filtered.sort((a,b)=> (getAgg(b.id).avg||0)-(getAgg(a.id).avg||0) );
+    if(sort==='popular') filtered.sort((a,b)=> (getAgg(b.id).count||0)-(getAgg(a.id).count||0) );
+    renderMarkers(); renderList();
+  }
+  function populateCountyFilter(){ const select=$('#county'); const set=new Set(data.map(g=>g.county).filter(Boolean)); [...set].sort().forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; select.appendChild(opt); }); }
+  function godPick(){
+    const elig=data.filter(g=>g.image_url && g.description);
+    const g = elig[Math.floor(Math.random()*Math.max(elig.length,1))] || data[0];
+    $('#god-img').src=g.image_url||''; $('#god-img').alt=g.name;
+    $('#god-title').textContent=g.name; $('#god-meta').textContent=[g.club,g.county].filter(Boolean).join(' · ');
+    $('#god-desc').textContent=g.description||''; $('#god-link').href='ground.html?id='+encodeURIComponent(g.id);
+  }
+  function nearbyMe(){ if(!navigator.geolocation) return toast('Geolocation not supported'); navigator.geolocation.getCurrentPosition(p=>{ map.setView([p.coords.latitude,p.coords.longitude], 11); toast('Centered near you'); }, _=> toast('Could not get your location'), {enableHighAccuracy:true, timeout:8000}); }
+  async function loadData(){
+    const [groundsRes, ratingsRes] = await Promise.all([ fetch('data/grounds.json',{cache:'no-cache'}), fetch('data/ratings.json',{cache:'no-cache'}) ]);
+    data=(await groundsRes.json()).map(r=>({...r, lat:+r.lat, lon:+r.lon})); ratings=await ratingsRes.json();
+    computeAggregates(); populateCountyFilter(); applyFilters(); godPick();
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{
+    initMap(); loadData();
+    $('#q').addEventListener('input', applyFilters);
+    $('#county').addEventListener('change', applyFilters);
+    $('#facility').addEventListener('change', applyFilters);
+    $('#sort').addEventListener('change', applyFilters);
+    $('#btn-nearby').addEventListener('click', e=>{e.preventDefault(); nearbyMe();});
+    $('#btn-today').addEventListener('click', e=>{e.preventDefault(); godPick(); toast('New ground of the day');});
   });
-}
-
-function applyFilters() {
-  const q = document.getElementById('q').value.toLowerCase().trim();
-  const county = document.getElementById('county').value;
-  const facility = document.getElementById('facility').value;
-  const sort = document.getElementById('sort').value;
-
-  filtered = data.filter(g => {
-    const text = (g.name + ' ' + (g.club||'') + ' ' + (g.county||'')).toLowerCase();
-    const matchQ = q === '' || text.includes(q);
-    const matchCounty = county === '' || g.county === county;
-    let matchFacility = true;
-    if (facility === 'nets') matchFacility = !!g.nets;
-    if (facility === 'bar') matchFacility = !!g.bar;
-    if (facility === 'parking') matchFacility = !!g.parking;
-    return matchQ && matchCounty && matchFacility;
-  });
-
-  if (sort === 'name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
-  if (sort === 'rating') filtered.sort((a,b)=>{
-    const A = getAgg(a.id), B = getAgg(b.id);
-    return (B.avg||0) - (A.avg||0);
-  });
-  if (sort === 'popular') filtered.sort((a,b)=>{
-    const A = getAgg(a.id), B = getAgg(b.id);
-    return (B.count||0) - (A.count||0);
-  });
-
-  renderMarkers();
-  renderList();
-}
-
-function populateCountyFilter() {
-  const select = document.getElementById('county');
-  const set = new Set(data.map(g => g.county).filter(Boolean));
-  [...set].sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    select.appendChild(opt);
-  });
-}
-
-function godPick() {
-  // Choose a ground with image and description
-  const elig = data.filter(g => g.image_url && g.description);
-  const g = elig[Math.floor(Math.random() * elig.length)] || data[0];
-  const img = document.getElementById('god-img');
-  img.src = g.image_url || '';
-  img.alt = g.name;
-  document.getElementById('god-title').textContent = g.name;
-  document.getElementById('god-meta').textContent = [g.club, g.county].filter(Boolean).join(' · ');
-  document.getElementById('god-desc').textContent = g.description || '';
-  const link = document.getElementById('god-link');
-  link.href = 'ground.html?id=' + encodeURIComponent(g.id);
-}
-
-function nearbyMe() {
-  if (!navigator.geolocation) return alert('Geolocation not supported on this device.');
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude, longitude } = pos.coords;
-    map.setView([latitude, longitude], 11);
-  }, err => {
-    alert('Could not get your location');
-  }, { enableHighAccuracy: true, timeout: 8000 });
-}
-
-async function loadData() {
-  const [groundsRes, ratingsRes] = await Promise.all([
-    fetch('./data/grounds.json', { cache: 'no-cache' }),
-    fetch('./data/ratings.json', { cache: 'no-cache' })
-  ]);
-  data = (await groundsRes.json()).map(r => ({...r, lat:+r.lat, lon:+r.lon}));
-  ratings = await ratingsRes.json();
-  computeAggregates();
-  populateCountyFilter();
-  applyFilters();
-  godPick();
-}
-
-function initShare() {
-  const shareBtn = document.getElementById('share-btn');
-  const copyBtn = document.getElementById('copy-btn');
-  shareBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const url = location.href;
-    const title = 'UK Cricket Grounds — Map, Ratings & Info';
-    const text = 'Explore cricket grounds near you.';
-    if (navigator.share) {
-      try { await navigator.share({ title, text, url }); } catch {}
-    } else {
-      window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url), '_blank');
-    }
-  });
-  copyBtn.addEventListener('click', async (e)=>{
-    e.preventDefault();
-    try { await navigator.clipboard.writeText(location.href); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy link', 1500); } catch {}
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  loadData();
-  initShare();
-  document.getElementById('q').addEventListener('input', applyFilters);
-  document.getElementById('county').addEventListener('change', applyFilters);
-  document.getElementById('facility').addEventListener('change', applyFilters);
-  document.getElementById('sort').addEventListener('change', applyFilters);
-  document.getElementById('btn-nearby').addEventListener('click', (e)=>{e.preventDefault(); nearbyMe();});
-  document.getElementById('btn-today').addEventListener('click', (e)=>{e.preventDefault(); godPick();});
-});
-</script>
+  </script>
 </body>
 </html>

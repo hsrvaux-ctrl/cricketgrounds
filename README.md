@@ -1,53 +1,30 @@
-# Cricket Grounds Pro — no-Airtable build
+# Polished UI + built-in fetch function (no node-fetch)
+This package upgrades your site UI and replaces the Netlify function to use **built-in fetch** so you do **not** need a package.json or node-fetch.
 
-This package upgrades your static GitHub + Netlify site with:
-- Modern UI, clustering, Nearby Me
-- "Ground of the Day"
-- Ratings (5 categories) with a Netlify Function that commits to your GitHub repo
-- Share buttons, SEO metadata, OpenGraph and Schema.org
-
-## 1) Add files to your repo
-Place these at the repository root:
+## What to upload (repo root)
+- assets/
+  - styles.css
+  - logo.svg
+  - favicon.svg
+- data/
+  - ratings.json    (leave as [])
+  - (DO NOT overwrite your existing data/grounds.json – keep the one the workflow produced)
 - index.html
 - ground.html
+- netlify/
+  - functions/
+    - submit_rating.mjs
 - netlify.toml
-- data/grounds.json            (your existing file from Overpass workflow)
-- data/ratings.json            (start as [])
-- netlify/functions/submit_rating.mjs
 
-## 2) Configure Netlify Function
-In Netlify UI → Site settings → Environment variables, set:
-- GITHUB_TOKEN  : a GitHub Personal Access Token (classic) with `repo` (private) or `public_repo` (public) scope
-- GITHUB_REPO   : owner/repo  (e.g. `hugo-vaux/cricket-grounds-map`)
-- GITHUB_BRANCH : main        (or your default branch)
+## Netlify configuration
+Add environment variables:
+- GITHUB_TOKEN   (PAT with public_repo or repo scope)
+- GITHUB_REPO    (e.g. yourname/yourrepo)
+- GITHUB_BRANCH  (e.g. main)
 
-Deploy again. Netlify will host the function at:
-`/.netlify/functions/submit_rating`
+## No workflow rerun needed
+This bundle doesn't touch `data/grounds.json`. Your existing file stays in place.
 
-## 3) Try a rating
-- Visit any ground page (e.g., `ground.html?id=G001`)
-- Click "Rate this ground"
-- Submit
-- A new commit will appear in GitHub updating `data/ratings.json`
-- Refresh the page — the average and count will update (client-side)
-
-## 4) Ground of the Day
-- The homepage picks a random ground that has a hero image + description
-- Click the "Ground of the Day" button to reshuffle client-side
-
-## 5) SEO
-- Ground pages fill dynamic meta and Schema.org JSON-LD
-- For best SEO on a static SPA, consider Netlify’s prerendering add-on later
-
-## 6) Share
-- "Share" uses the Web Share API where supported, falls back to Twitter intent
-- "Copy link" puts the URL on clipboard
-
-## 7) Clustering & Nearby
-- Marker clustering reduces map clutter
-- Nearby me recenters map to your GPS location
-
-## Notes
-- Ratings are stored in your GitHub repo via the function, so no database is needed.
-- You can later add moderation by reviewing `data/ratings.json` in PRs before merging.
-
+## Test
+- Open a ground page → Rate this ground → Submit
+- A commit should appear updating `data/ratings.json` in your GitHub repo

@@ -4,249 +4,134 @@
   <meta charset="utf-8">
   <title id="meta-title">Cricket Ground — Details & Ratings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <meta id="meta-description" name="description" content="Cricket ground details, facilities and ratings.">
+  <meta id="meta-description" name="description" content="">
   <meta property="og:title" content="" id="og-title">
   <meta property="og:description" content="" id="og-desc">
   <meta property="og:image" content="" id="og-image">
   <meta property="og:type" content="article">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 
+  <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <style>
-    :root { --line:#e9e9e9; --accent:#0b6; --muted:#666; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    header { padding: 12px 16px; border-bottom: 1px solid var(--line); display:flex; gap:12px; align-items:center;}
-    header a { text-decoration:none; font-size:14px; }
-    header .share { margin-left:auto; display:flex; gap:8px; }
-    .btn { display:inline-block; padding:8px 12px; border:1px solid var(--line); border-radius:999px; text-decoration:none; font-size:13px; }
-    .primary { background: var(--accent); color:#fff; border-color: var(--accent); }
-    main { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px; }
-    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
-    #map { height: 360px; border:1px solid #eee; border-radius: 8px; }
-    .card { border:1px solid #eee; border-radius: 12px; padding: 12px; }
-    .muted { color:#666; font-size: 14px; }
-    dt { font-weight: 600; }
-    dd { margin:0 0 8px 0; }
-    .hero { width:100%; height:280px; object-fit:cover; border-radius:12px; border:1px solid #ddd; margin-bottom:12px; }
-    .credit { font-size: 12px; color:#666; }
-    .rating { color:#f80; font-weight:600; }
-    dialog { border:none; border-radius:16px; padding:0; max-width:560px; width:90%; }
-    .modal { padding:16px; }
-    .row { display:grid; grid-template-columns: 160px 1fr; gap:8px; align-items:center; margin:8px 0; }
-    input[type="range"] { width:100%; }
-    form .btns { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
-  </style>
-
-  <script type="application/ld+json" id="structured-data"></script>
 </head>
 <body>
   <header>
-    <a href="./index.html">← Back</a>
-    <strong id="title">Ground</strong>
-    <div class="share">
-      <a class="btn" id="share-btn" href="#">Share</a>
-      <a class="btn" id="copy-btn" href="#">Copy link</a>
+    <div class="navbar container">
+      <div class="brand"><a href="./index.html" class="btn">← Back</a><h1 id="title" style="margin:0 0 0 10px">Ground</h1></div>
+      <div class="nav">
+        <a class="btn" id="share-btn" href="#">Share</a>
+        <a class="btn" id="copy-btn" href="#">Copy link</a>
+      </div>
     </div>
   </header>
-  <main>
+
+  <main class="container" style="grid-template-columns: 1fr 420px">
     <section class="card">
       <img id="hero" class="hero" alt="" src="">
       <div class="credit" id="credit"></div>
-      <div id="meta">
-        <div class="muted" id="club"></div>
-        <div class="muted" id="county"></div>
-        <div class="muted" id="address"></div>
-      </div>
+      <div class="muted" id="club"></div>
+      <div class="muted" id="county"></div>
+      <div class="muted" id="address"></div>
       <p id="desc"></p>
       <p><span class="rating" id="avg">★</span> <span id="count"></span></p>
       <p id="actions"></p>
       <p><a class="btn primary" id="rate-open" href="#">Rate this ground</a></p>
     </section>
-    <section class="card">
-      <div id="map"></div>
-    </section>
-    <section class="card">
-      <h3>Facilities</h3>
-      <dl>
-        <dt>Pitch type</dt><dd id="pitch"></dd>
-        <dt>Strips</dt><dd id="strips"></dd>
-        <dt>Nets</dt><dd id="nets"></dd>
-        <dt>Bar</dt><dd id="bar"></dd>
-        <dt>Parking</dt><dd id="parking"></dd>
-      </dl>
-    </section>
+
+    <aside class="side">
+      <div class="card"><div id="map" style="height:340px"></div></div>
+      <div class="card">
+        <h3 style="margin-top:0">Facilities</h3>
+        <dl>
+          <dt>Pitch type</dt><dd id="pitch"></dd>
+          <dt>Strips</dt><dd id="strips"></dd>
+          <dt>Nets</dt><dd id="nets"></dd>
+          <dt>Bar</dt><dd id="bar"></dd>
+          <dt>Parking</dt><dd id="parking"></dd>
+        </dl>
+      </div>
+    </aside>
   </main>
 
   <dialog id="rate-dialog">
     <form method="dialog" class="modal" id="rate-form">
       <h3>Rate this ground</h3>
-      <div class="row"><label>Pitch quality</label><input type="range" min="1" max="5" value="3" name="pitch"></div>
-      <div class="row"><label>Pavilion & facilities</label><input type="range" min="1" max="5" value="3" name="pavilion"></div>
-      <div class="row"><label>Bar/tea quality</label><input type="range" min="1" max="5" value="3" name="bar"></div>
-      <div class="row"><label>Atmosphere & friendliness</label><input type="range" min="1" max="5" value="3" name="atmosphere"></div>
-      <div class="row"><label>Value for money</label><input type="range" min="1" max="5" value="3" name="value"></div>
+      <div class="row"><label>Pitch quality</label><input type="range" min="1" max="5" value="3" name="pitch" aria-label="Pitch quality"></div>
+      <div class="row"><label>Pavilion & facilities</label><input type="range" min="1" max="5" value="3" name="pavilion" aria-label="Pavilion and facilities"></div>
+      <div class="row"><label>Bar/tea quality</label><input type="range" min="1" max="5" value="3" name="bar" aria-label="Bar and tea quality"></div>
+      <div class="row"><label>Atmosphere & friendliness</label><input type="range" min="1" max="5" value="3" name="atmosphere" aria-label="Atmosphere and friendliness"></div>
+      <div class="row"><label>Value for money</label><input type="range" min="1" max="5" value="3" name="value" aria-label="Value for money"></div>
       <div class="row"><label>Your name (optional)</label><input type="text" name="name" placeholder="e.g. Hugo"></div>
       <div class="row"><label>Comment (optional)</label><input type="text" name="comment" placeholder="What stood out?"></div>
       <div class="btns">
         <button class="btn" id="rate-cancel">Cancel</button>
         <button class="btn primary" id="rate-submit">Submit</button>
       </div>
-      <p id="rate-status" class="muted"></p>
+      <p id="rate-status" class="muted" role="status"></p>
     </form>
   </dialog>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script>
-const params = new URLSearchParams(location.search);
-let id = params.get('id');
-if (id === 'random') {
-  // redirect to a random ground
-  fetch('./data/grounds.json').then(r=>r.json()).then(rows=>{
-    const g = rows[Math.floor(Math.random()*rows.length)];
-    location.replace('ground.html?id=' + encodeURIComponent(g.id));
-  });
-}
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-let g = null, ratings = [];
-function avgText(a){ return isFinite(a) ? '★ ' + (Math.round(a*10)/10).toFixed(1) : 'No ratings yet'; }
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+  const $ = sel => document.querySelector(sel);
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
+  const params = new URLSearchParams(location.search); let id = params.get('id');
+  if (id === 'random') { fetch('data/grounds.json').then(r=>r.json()).then(rows=>{ const g=rows[Math.floor(Math.random()*rows.length)]; location.replace('ground.html?id='+encodeURIComponent(g.id)); }); }
 
-function computeAgg(list) {
-  const forThis = list.filter(r => r.ground_id === g.id);
-  const n = forThis.length;
-  if (!n) return {avg:null, count:0};
-  let sum = 0;
-  forThis.forEach(r => { sum += (r.pitch + r.pavilion + r.bar + r.atmosphere + r.value) / 5; });
-  return {avg: sum/n, count:n};
-}
-
-function setText(id, value) { document.getElementById(id).textContent = value || ''; }
-function truthy(v) { return v ? 'Yes' : 'No'; }
-
-function setSEO() {
-  document.getElementById('meta-title').textContent = g.name + ' — Ratings & Info';
-  document.getElementById('meta-description').setAttribute('content', 'Learn about ' + g.name + ' in ' + (g.county||'') + '. See ratings, facilities and more.');
-  document.getElementById('og-title').setAttribute('content', g.name + ' — Ratings & Info');
-  document.getElementById('og-desc').setAttribute('content', 'Explore ' + g.name + ' with ratings and facilities.');
-  if (g.image_url) document.getElementById('og-image').setAttribute('content', g.image_url);
-
-  // Schema.org for place
-  const schema = {
-    "@context":"https://schema.org",
-    "@type":"SportsActivityLocation",
-    "name": g.name,
-    "address": g.address || "",
-    "geo": {"@type":"GeoCoordinates","latitude": g.lat, "longitude": g.lon},
-    "url": location.href,
-    "image": g.image_url || "",
-    "aggregateRating": undefined
-  };
-  const agg = computeAgg(ratings);
-  if (agg.count) schema.aggregateRating = {"@type":"AggregateRating","ratingValue": Math.round(agg.avg*10)/10, "reviewCount": agg.count};
-  document.getElementById('structured-data').textContent = JSON.stringify(schema);
-}
-
-function initMap(lat, lon, name) {
-  const map = L.map('map').setView([lat, lon], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-  L.marker([lat, lon]).addTo(map).bindPopup(name).openPopup();
-}
-
-async function loadAll() {
-  const [grounds, ratingList] = await Promise.all([
-    fetch('./data/grounds.json', { cache:'no-cache' }).then(r=>r.json()),
-    fetch('./data/ratings.json', { cache:'no-cache' }).then(r=>r.json())
-  ]);
-  g = grounds.find(r => r.id === id) || grounds[0];
-  ratings = ratingList;
-  setText('title', g.name);
-  const hero = document.getElementById('hero');
-  if (g.image_url) { hero.src = g.image_url; hero.alt = g.name; } else { hero.style.display='none'; }
-  setText('club', g.club);
-  setText('county', g.county);
-  setText('address', g.address);
-  setText('desc', g.description);
-  const creditBits = [g.image_credit, g.image_license].filter(Boolean);
-  document.getElementById('credit').textContent = creditBits.join(' • ');
-  setText('pitch', g.pitch_type || 'Unknown');
-  setText('strips', g.strips ?? 'Unknown');
-  setText('nets', truthy(g.nets));
-  setText('bar', truthy(g.bar));
-  setText('parking', truthy(g.parking));
-  const actions = [];
-  if (g.club_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.club_url+'">Club site</a>');
-  if (g.play_cricket_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.play_cricket_url+'">Play Cricket</a>');
-  if (g.booking_url) actions.push('<a class="btn" target="_blank" rel="noopener" href="'+g.booking_url+'">Book this ground</a>');
-  document.getElementById('actions').innerHTML = actions.join(' ');
-
-  const agg = computeAgg(ratings);
-  document.getElementById('avg').textContent = avgText(agg.avg);
-  document.getElementById('count').textContent = agg.count ? '(' + agg.count + ' ratings)' : '';
-  setSEO();
-
-  initMap(+g.lat, +g.lon, g.name);
-
-  initShare();
-  initRating();
-}
-
-function initShare() {
-  const shareBtn = document.getElementById('share-btn');
-  const copyBtn = document.getElementById('copy-btn');
-  shareBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const url = location.href;
-    const title = document.title;
-    const text = 'Check out this cricket ground';
-    if (navigator.share) {
-      try { await navigator.share({ title, text, url }); } catch {}
-    } else {
-      window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url), '_blank');
-    }
-  });
-  copyBtn.addEventListener('click', async (e)=>{
-    e.preventDefault();
-    try { await navigator.clipboard.writeText(location.href); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy link', 1500); } catch {}
-  });
-}
-
-function initRating() {
-  const dlg = document.getElementById('rate-dialog');
-  document.getElementById('rate-open').addEventListener('click', (e)=>{ e.preventDefault(); dlg.showModal(); });
-  document.getElementById('rate-cancel').addEventListener('click', (e)=>{ e.preventDefault(); dlg.close(); });
-  document.getElementById('rate-submit').addEventListener('click', async (e)=>{
-    e.preventDefault();
-    const form = document.getElementById('rate-form');
-    const payload = {
-      ground_id: g.id,
-      pitch: +form.pitch.value,
-      pavilion: +form.pavilion.value,
-      bar: +form.bar.value,
-      atmosphere: +form.atmosphere.value,
-      value: +form.value.value,
-      name: form.name.value || '',
-      comment: form.comment.value || ''
-    };
-    const status = document.getElementById('rate-status');
-    status.textContent = 'Submitting…';
-    try {
-      const res = await fetch('/.netlify/functions/submit_rating', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      status.textContent = 'Thanks — rating received!';
-      setTimeout(()=>dlg.close(), 800);
-    } catch (err) {
-      status.textContent = 'Sorry, submission failed.';
-    }
-  });
-}
-
-loadAll();
-</script>
+  let g=null, ratings=[];
+  function avgText(a){ return isFinite(a) ? '★ '+(Math.round(a*10)/10).toFixed(1) : 'No ratings yet'; }
+  function computeAgg(list){ const forThis=list.filter(r=>r.ground_id===g.id); const n=forThis.length; if(!n) return {avg:null,count:0}; let sum=0; forThis.forEach(r=>{ sum += (r.pitch+r.pavilion+r.bar+r.atmosphere+r.value)/5; }); return {avg:sum/n,count:n}; }
+  function truthy(v){ return v?'Yes':'No'; }
+  function setSEO(){
+    $('#meta-title').textContent = g.name+' — Ratings & Info';
+    $('#meta-description').setAttribute('content','Learn about '+g.name+' in '+(g.county||'')+'. See ratings, facilities and more.');
+    $('#og-title').setAttribute('content', g.name+' — Ratings & Info');
+    $('#og-desc').setAttribute('content','Explore '+g.name+' with ratings and facilities.');
+    if(g.image_url) $('#og-image').setAttribute('content', g.image_url);
+  }
+  function initMap(lat,lon,name){ const map=L.map('map').setView([lat,lon],14); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map); L.marker([lat,lon]).addTo(map).bindPopup(name).openPopup(); }
+  async function loadAll(){
+    const [grounds, ratingList] = await Promise.all([ fetch('data/grounds.json',{cache:'no-cache'}).then(r=>r.json()), fetch('data/ratings.json',{cache:'no-cache'}).then(r=>r.json()) ]);
+    g = grounds.find(r=>r.id===id) || grounds[0]; ratings = ratingList;
+    $('#title').textContent = g.name;
+    const hero=$('#hero'); if(g.image_url){ hero.src=g.image_url; hero.alt=g.name; } else { hero.style.display='none'; }
+    $('#club').textContent=g.club||''; $('#county').textContent=g.county||''; $('#address').textContent=g.address||''; $('#desc').textContent=g.description||'';
+    const credit=[g.image_credit,g.image_license].filter(Boolean).join(' • '); $('.credit').textContent=credit;
+    $('#pitch').textContent=g.pitch_type||'Unknown'; $('#strips').textContent = (g.strips ?? 'Unknown'); $('#nets').textContent=truthy(g.nets); $('#bar').textContent=truthy(g.bar); $('#parking').textContent=truthy(g.parking);
+    const btns=[]; if(g.club_url) btns.push('<a class="btn" target="_blank" rel="noopener" href="'+g.club_url+'">Club site</a>');
+    if(g.play_cricket_url) btns.push('<a class="btn" target="_blank" rel="noopener" href="'+g.play_cricket_url+'">Play Cricket</a>');
+    if(g.booking_url) btns.push('<a class="btn" target="_blank" rel="noopener" href="'+g.booking_url+'">Book this ground</a>');
+    $('#actions').innerHTML = btns.join(' ');
+    const agg=computeAgg(ratings); $('#avg').textContent=avgText(agg.avg); $('#count').textContent = agg.count? '('+agg.count+' ratings)' : '';
+    setSEO(); initMap(+g.lat,+g.lon,g.name); initShare(); initRating();
+  }
+  function initShare(){
+    $('#share-btn').addEventListener('click', async e=>{
+      e.preventDefault(); const url=location.href, title=document.title, text='Check out this cricket ground';
+      if(navigator.share){ try{ await navigator.share({title,text,url}); }catch{} }
+      else{ window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url),'_blank'); }
+    });
+    $('#copy-btn').addEventListener('click', async e=>{ e.preventDefault(); try{ await navigator.clipboard.writeText(location.href); toast('Link copied'); }catch{} });
+  }
+  function initRating(){
+    const dlg=$('#rate-dialog');
+    $('#rate-open').addEventListener('click', e=>{ e.preventDefault(); dlg.showModal(); });
+    $('#rate-cancel').addEventListener('click', e=>{ e.preventDefault(); dlg.close(); });
+    $('#rate-submit').addEventListener('click', async e=>{
+      e.preventDefault();
+      const f=$('#rate-form');
+      const payload = { ground_id: g.id, pitch:+f.pitch.value, pavilion:+f.pavilion.value, bar:+f.bar.value, atmosphere:+f.atmosphere.value, value:+f.value.value, name:f.name.value||'', comment:f.comment.value||'' };
+      const status=$('#rate-status'); status.textContent='Submitting…';
+      try{
+        const res=await fetch('/.netlify/functions/submit_rating',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        status.textContent='Thanks — rating received!'; setTimeout(()=>dlg.close(),800);
+      }catch(err){ status.textContent='Submission failed'; }
+    });
+  }
+  loadAll();
+  </script>
 </body>
 </html>
